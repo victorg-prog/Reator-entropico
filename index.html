@@ -165,6 +165,45 @@
         margin-top: 4px;
         line-height: 1.5;
       }
+      .du-number-input {
+        width: 90px;
+        padding: 7px 8px;
+        border: 1px solid var(--border2);
+        border-radius: 4px;
+        background: var(--bg);
+        color: var(--text-bright);
+        font: inherit;
+        font-size: 13px;
+        text-align: center;
+      }
+      .du-number-input:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 2px rgba(79,195,247,.12);
+      }
+      .serial-terms {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px 0;
+        margin-top: 2px;
+      }
+      .serial-term {
+        display: inline-block;
+        white-space: nowrap;
+      }
+      .serial-term + .serial-term::before {
+        content: '|';
+        margin: 0 10px;
+        color: var(--text-dim);
+      }
+      .rule-options {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        margin-top: 6px;
+        padding-left: 1rem;
+      }
+      .rule-option { display: block; }
 
       @media screen and (max-width: 900px), screen and (pointer: coarse) {
         /* No painel móvel do Operador, cada módulo ocupa uma linha inteira. */
@@ -309,11 +348,84 @@
 
     function iniciar(papel) {
       let content = papel === 'operador' ? htmlOperador : htmlEspecialista;
+      if (papel === 'operador') {
+        content = content.replace(
+          `  applyDangerVisuals();
+  if(strikes>=MAX_STRIKES)`,
+          `  applyDangerVisuals();
+  if(strikes===2){
+    setTimeout(()=>{
+      if(strikes!==2)return;
+      document.body.classList.remove('danger-0','danger-1','danger-2','danger-3');
+      document.body.classList.add('danger-0');
+      setDroneLevel(0);
+    },5000);
+  }
+  if(strikes>=MAX_STRIKES)`
+        );
+        content = content.replace(
+          '          <input type="range" min="${c.min}" max="${c.max}" value="0" step="1" id="du-slider" oninput="updateDU()">\n          <span class="slider-readout" id="du-readout">0 J</span>',
+          '          <input type="range" min="${c.min}" max="${c.max}" value="0" step="1" id="du-slider" oninput="updateDU()">\n          <input type="number" inputmode="decimal" enterkeyhint="done" min="${c.min}" max="${c.max}" value="0" step="1" id="du-input" class="du-number-input" aria-label="Valor de delta U em joules" oninput="updateDUFromInput()">\n          <span class="slider-readout" id="du-readout">0 J</span>'
+        );
+        content = content.replace(
+          `function updateDU(){
+  const sl=document.getElementById('du-slider');
+  const disp=document.getElementById('du-display');
+  const ro=document.getElementById('du-readout');
+  if(!sl||!disp||!ro) return; // defensive: content not loaded yet
+  const v=parseInt(sl.value);
+  disp.textContent=v;
+  ro.textContent=v+' J';
+}
+function checkPL(idx){`,
+          `function updateDU(){
+  const sl=document.getElementById('du-slider');
+  const input=document.getElementById('du-input');
+  const disp=document.getElementById('du-display');
+  const ro=document.getElementById('du-readout');
+  if(!sl||!disp||!ro) return; // defensive: content not loaded yet
+  const v=parseInt(sl.value);
+  if(input) input.value=v;
+  disp.textContent=v;
+  ro.textContent=v+' J';
+}
+function updateDUFromInput(){
+  const sl=document.getElementById('du-slider');
+  const input=document.getElementById('du-input');
+  if(!sl||!input) return;
+  const v=parseInt(input.value);
+  if(isNaN(v)) return;
+  sl.value=Math.max(parseInt(sl.min),Math.min(parseInt(sl.max),v));
+  updateDU();
+}
+function checkPL(idx){`
+        );
+        content = content.replace(
+          `Diga ao Especialista: Série = <strong>\${serialNumber}</strong> | Soma = <strong>\${serialSum}</strong> | Vogal = <strong>\${serialHasVowel?'SIM':'NÃO'}</strong>`,
+          `Diga ao Especialista:<span class="serial-terms"><span class="serial-term">Série = <strong>\${serialNumber}</strong></span><span class="serial-term">Soma = <strong>\${serialSum}</strong></span><span class="serial-term">Vogal = <strong>\${serialHasVowel?'SIM':'NÃO'}</strong></span></span>`
+        );
+        content = content.replace(
+          `Diga ao Especialista: Modelo = <strong>\${reactorModel}</strong> | Soma = <strong>\${serialSum}</strong> | Vogal = <strong>\${serialHasVowel?'SIM':'NÃO'}</strong>`,
+          `Diga ao Especialista:<span class="serial-terms"><span class="serial-term">Modelo = <strong>\${reactorModel}</strong></span><span class="serial-term">Soma = <strong>\${serialSum}</strong></span><span class="serial-term">Vogal = <strong>\${serialHasVowel?'SIM':'NÃO'}</strong></span></span>`
+        );
+      }
       if (papel === 'especialista') {
         content = content
           .replace('Expansão de gás em vácuo (irreversível)<br>', 'Expansão de gás em vácuo<br>(irreversível)<br>')
           .replace('Água evaporando (líquido → vapor)<br>', 'Água evaporando<br>(líquido → vapor)<br>')
-          .replace('Gelo derretendo (sólido → líquido)<br>', 'Gelo derretendo<br>(sólido → líquido)<br>');
+          .replace('Gelo derretendo (sólido → líquido)<br>', 'Gelo derretendo<br>(sólido → líquido)<br>')
+          .replace(
+            '<li><span class="rule-num">P1</span><span class="rule-text"><strong>Posição 1:</strong> Soma dos dígitos PAR → <strong>Q</strong> · ÍMPAR → <strong>T</strong></span></li>',
+            '<li><span class="rule-num">P1</span><span class="rule-text"><strong>Posição 1:</strong> Soma dos dígitos for:<span class="rule-options"><span class="rule-option"><strong>PAR</strong> → <strong>Q</strong></span><span class="rule-option"><strong>ÍMPAR</strong> → <strong>T</strong></span></span></span></li>'
+          )
+          .replace(
+            '<li><span class="rule-num">P3</span><span class="rule-text"><strong>Posição 3:</strong> Serial tem VOGAL → <strong>U</strong> · SEM vogal → <strong>W</strong></span></li>',
+            '<li><span class="rule-num">P3</span><span class="rule-text"><strong>Posição 3:</strong> Serial:<span class="rule-options"><span class="rule-option"><strong>TEM vogal</strong> → <strong>U</strong></span><span class="rule-option"><strong>SEM vogal</strong> → <strong>W</strong></span></span></span></li>'
+          )
+          .replace(
+            '<li><span class="rule-num">P4</span><span class="rule-text"><strong>Posição 4:</strong> Soma &gt; 12 → <strong>H</strong> · Soma ≤ 12 → <strong>Δ</strong></span></li>',
+            '<li><span class="rule-num">P4</span><span class="rule-text"><strong>Posição 4:</strong> Soma dos dígitos for:<span class="rule-options"><span class="rule-option"><strong>Soma &gt; 12</strong> → <strong>H</strong></span><span class="rule-option"><strong>Soma ≤ 12</strong> → <strong>Δ</strong></span></span></span></li>'
+          );
       }
       document.open();
       document.write(content.replace('</head>', responsiveStyles + '</head>'));
