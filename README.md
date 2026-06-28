@@ -2,11 +2,11 @@
 
 Jogo educativo cooperativo de termodinâmica para duas pessoas. Uma pessoa opera o painel de um reator em falha enquanto a outra consulta um manual com as informações que faltam. A dupla precisa se comunicar para restaurar sete módulos antes que o tempo ou a margem de erros acabem.
 
-O projeto inteiro está contido em [`reator_entropico_completo.html`](./reator_entropico_completo.html): menu, jogo do Operador, manual do Especialista, estilos, regras e efeitos sonoros. Não há backend, processo de build ou dependências para instalar.
+O projeto inteiro está contido em [`index.html`](./index.html): menu, jogo do Operador, manual do Especialista, estilos, regras e efeitos sonoros. Não há backend, processo de build ou dependências para instalar.
 
 ## Como executar
 
-1. Abra `reator_entropico_completo.html` em um navegador moderno.
+1. Abra `index.html` em um navegador moderno.
 2. Em um dispositivo ou aba, escolha **Iniciar como Operador**.
 3. Abra o arquivo novamente em outro dispositivo ou aba e escolha **Iniciar como Especialista (Manual)**.
 4. Mantenham as telas separadas e conversem por voz. O Operador informa os dados visíveis; o Especialista consulta ou calcula a resposta no manual.
@@ -17,7 +17,7 @@ Também é possível servir a pasta localmente, embora isso não seja obrigatór
 python -m http.server 8000
 ```
 
-Depois, acesse `http://localhost:8000/reator_entropico_completo.html`.
+Depois, acesse `http://localhost:8000/`.
 
 > O navegador pode exigir uma primeira interação para liberar o áudio. As fontes JetBrains Mono e Orbitron são carregadas do Google Fonts; sem internet, a aplicação continua funcionando com as fontes alternativas do sistema.
 
@@ -70,8 +70,8 @@ O áudio é produzido em tempo real com a Web Audio API, sem arquivos de mídia.
 
 ```text
 .
-├── reator_entropico_completo.html  # aplicação completa
-└── README.md                       # documentação do projeto
+├── index.html  # aplicação completa
+└── README.md   # documentação do projeto
 ```
 
 ## Conteúdos trabalhados
